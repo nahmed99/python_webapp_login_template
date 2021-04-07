@@ -16,9 +16,18 @@ def login():
    if request.method == 'POST':
       # get the data passed in from the login form
       email = request.form.get('email')
-      password = request.for.get('password')
+      password = request.form.get('password')
 
-      # query the database - verify that email address already exists 
+      # query the database - verify that email address already exists
+      user = User.query.filter_by(email=email).first()   # get first occurance - should only be a maximum of one resulting rows though
+      if user:
+         # compare the stored password against the password entered
+         if check_password_hash(user.password, password):
+            flash('Logged in successfully!', category='success')
+         else:
+            flash('Incorrect password, try again.', category='error')
+      else:
+         flash('Email does not exist.', category='error')
 
    return render_template("login.html", boolean=True)
 
@@ -39,7 +48,13 @@ def sign_up():
       password_1 = request.form.get('password-1')
       password_2 = request.form.get('password-2')
 
-      if len(email) < 4:
+
+      # Check that user does NOT already exist
+      user = User.query.filter_by(email=email).first()   # get first occurance - should only be a maximum of one resulting rows though
+
+      if user:
+         flash('User already exists.', category='error')
+      elif len(email) < 4:
          flash('Email must be greater than 3 characters.', category='error')
       elif len(firstName) < 2:
          flash('First name must be greater than 1 character.', category='error')
